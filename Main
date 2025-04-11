@@ -1,0 +1,125 @@
+import java.util.Scanner;
+import java.util.regex.*;
+import java.util.ArrayList;
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        ArrayList<Usuario> usuariosRegistrados = new ArrayList<>();  
+
+        System.out.println("=== Registro de Usuario ===\n");
+
+        while (true) {
+            System.out.print("Nombre completo: ");
+            String nombre = scanner.nextLine().trim();
+
+            System.out.print("Correo electrónico: ");
+            String correo = scanner.nextLine().trim();
+
+            System.out.print("Contraseña: ");
+            String contraseña = scanner.nextLine().trim();
+
+            Usuario usuario = new Usuario(nombre, correo, contraseña);
+
+            if (usuario.validar()) {
+                System.out.println("\n✅ Registro exitoso:");
+                System.out.println(usuario);
+                usuariosRegistrados.add(usuario); 
+            } else {
+                System.out.println("\n❌ Error en los datos ingresados. Intente nuevamente.\n");
+            }
+
+            
+            System.out.print("\n¿Desea registrar otro usuario? (s/n): ");
+            String respuesta = scanner.nextLine().trim().toLowerCase();
+
+            if (!respuesta.equals("s")) {
+                System.out.println("\nGracias por usar el sistema de registro.");
+                break;
+            }
+        }
+
+        
+        if (!usuariosRegistrados.isEmpty()) {
+            System.out.println("\n=== Usuarios Registrados ===");
+            for (Usuario usuario : usuariosRegistrados) {
+                System.out.println(usuario);
+            }
+        } else {
+            System.out.println("No se registraron usuarios.");
+        }
+
+        scanner.close();
+    }
+}
+
+class Usuario {
+    private String nombre;
+    private String correo;
+    private String contraseña;
+
+    public Usuario(String nombre, String correo, String contraseña) {
+        this.nombre = nombre;
+        this.correo = correo;
+        this.contraseña = contraseña;
+    }
+
+    public boolean validar() {
+        boolean nombreValido = validarNombre();
+        boolean correoValido = validarCorreo();
+        boolean contraseñaValida = ValidacionContraseña.validar(contraseña);
+        return nombreValido && correoValido && contraseñaValida;
+    }
+
+    private boolean validarNombre() {
+        if (!nombre.matches("^[\\p{L} ]{3,}$")) {
+            System.out.println("❌ El nombre debe tener al menos 3 letras y solo puede contener letras y espacios.");
+            return false;
+        }
+        return true;
+    }
+
+    private boolean validarCorreo() {
+        String regexCorreo = "^[\\w.-]+@[\\w.-]+\\.[a-zA-Z]{2,6}$";
+        if (!correo.matches(regexCorreo)) {
+            System.out.println("❌ Correo inválido. Asegúrate que tenga el formato correcto (ej. usuario@dominio.com)");
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "Nombre: " + nombre + "\nCorreo: " + correo;
+    }
+}
+
+class ValidacionContraseña {
+    public static boolean validar(String contraseña) {
+        boolean longitudOK = contraseña.length() >= 8;
+        boolean mayusOK = contraseña.replaceAll("[^A-Z]", "").length() >= 2;
+        boolean minusOK = contraseña.replaceAll("[^a-z]", "").length() >= 3;
+        boolean numOK = contraseña.replaceAll("[^0-9]", "").length() >= 1;
+        boolean espOK = contraseña.replaceAll("[a-zA-Z0-9]", "").length() >= 1;
+
+        System.out.println("\nValidando contraseña:");
+        System.out.println(" - Longitud mínima de 8: " + check(longitudOK));
+        System.out.println(" - Al menos 2 mayúsculas: " + check(mayusOK) + " (" + contar("[A-Z]", contraseña) + ")");
+        System.out.println(" - Al menos 3 minúsculas: " + check(minusOK) + " (" + contar("[a-z]", contraseña) + ")");
+        System.out.println(" - Al menos 1 número: " + check(numOK) + " (" + contar("\\d", contraseña) + ")");
+        System.out.println(" - Al menos 1 carácter especial: " + check(espOK) + " (" + contar("[^a-zA-Z0-9]", contraseña) + ")");
+
+        return longitudOK && mayusOK && minusOK && numOK && espOK;
+    }
+
+    private static String check(boolean condicion) {
+        return condicion ? "✔" : "✘";
+    }
+
+    private static int contar(String regex, String texto) {
+        Matcher matcher = Pattern.compile(regex).matcher(texto);
+        int count = 0;
+        while (matcher.find()) count++;
+        return count;
+    }
+}
